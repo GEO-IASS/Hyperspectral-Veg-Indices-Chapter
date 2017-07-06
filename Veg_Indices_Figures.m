@@ -22,6 +22,11 @@ color9 = [102 194 165] ./ 255;
 color10 = [50 136 189] ./ 255; %Blue
 color = [color1;color2;color3;color4;color5;color6;color7;color8;color9;color10];
 
+grayLt = [189 189 189] ./ 255;
+grayDk = [99 99 99] ./ 255;
+
+%% Figure 14.4 Environmental Variables
+
 %% Spectra of Grass Plots
 figure
 hold on
@@ -97,7 +102,7 @@ fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 5 2.5];
 print(strcat(figDir,'spectra_ARCA'),'-dpng')
 
-%% Spectra of Grass, BAPI, ARCA
+%% Figure 14.5 Spectra of Grass, BAPI, ARCA
 % ha = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
 %   in:  Nh      number of axes in height (vertical direction)
 %        Nw      number of axes in width (horizontaldirection)
@@ -178,9 +183,28 @@ end
 fig = gcf;
 fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 8 5];
-print(strcat(figDir,'spectra_Grass_BAPI_ARCA'),'-dpng')
+print(strcat(figDir,'figure_14-5'),'-dpng')
 
-%% Index Grass
+%% Calculate Indices
+indexArca = zeros(10,32);
+indexBapi = zeros(10,32);
+
+%CI Rededge index #8
+%nir/rededge - 1
+%indexArca(:,8) = specArca(:,)/specArca(:,) - 1;
+%indexBapi(:,8) = [];
+
+%WBI index #32
+%b900/b970;
+indexArca(:,32) = specArca(:,551)./specArca(:,621);
+indexBapi(:,32) = specBapi(:,551)./specBapi(:,621);
+
+%RVSI index #23
+%(b714+b752)/2 - b733;
+indexArca(:,23) = ((specArca(:,365) + specArca(:,403))/2 - specArca(:,384))/100;
+indexBapi(:,23) = ((specBapi(:,365) + specBapi(:,403))/2 - specBapi(:,384))/100;
+
+%% Figure 14.6: Index, Plant Available Water, and AET/PET
 % ha = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
 %   in:  Nh      number of axes in height (vertical direction)
 %        Nw      number of axes in width (horizontaldirection)
@@ -191,30 +215,63 @@ print(strcat(figDir,'spectra_Grass_BAPI_ARCA'),'-dpng')
 %        marg_w  margins in width in normalized units (0...1)
 %                   or [left right] for different left and right margins
 figure('units','normalized','outerposition',[0 0 1 1])
-ha = tight_subplot(3,1,[.06 .05],[.1 .05],[.25 .05]);
+ha = tight_subplot(3,2,[.05 .07],[.05 .05],[.12 .03]);
 xname = cell2mat(metaGrass(:,3));
-for ii = 1:3
+for ii = 1:6
     axes(ha(ii));
     
     if ii == 1
-        plot(xname,indexGrass(:,8),'k')
+        hold on
+        plot(xname,indexGrass(:,32),':k','LineWidth',1.5)
+        plot(xname,indexArca(:,32),'--','color',grayDk,'LineWidth',1.5)
+        plot(xname,indexBapi(:,32),'color',grayLt,'LineWidth',1.5)
+        axis([10 150 0.9 1.1])
+        set(ha(ii),'YTick',0.9:0.05:1.1,'YTickLabel',0.9:0.05:1.1)
+        set(ha(ii),'XTick',20:20:140,'XTickLabel',20:20:140)
+        ytickformat('%.2f')
+        ylabel('WBI')
+        hold off
+
+    elseif ii == 2
+        hold on
+        plot(xname,indexGrass(:,8),':k','LineWidth',1.5)
+        plot(xname,indexArca(:,8),'--','color',grayDk,'LineWidth',1.5)
+        plot(xname,indexBapi(:,8),'color',grayLt,'LineWidth',1.5)
         axis([10 150 0 2.5])
         set(ha(ii),'YTick',0:0.5:2.5,'YTickLabel',0:0.5:2.5)
-        set(ha(ii),'XTick',20:20:140)
+        set(ha(ii),'XTick',20:20:140,'XTickLabel',20:20:140)
+        ytickformat('%.1f')
         ylabel('CI Rededge')
-        title('MAGF')
-    elseif ii == 2
-        plot(xname,indexGrass(:,32),'k')
-        axis([10 150 0.9 1])
-        set(ha(ii),'YTick',0.9:0.02:1,'YTickLabel',0.9:0.02:1)
-        set(ha(ii),'XTick',20:20:140)
-        ylabel('WBI')
-    else
-        plot(xname,indexGrass(:,23),'k')
-        axis([10 150 -0.02 0])
-        set(ha(ii),'YTick',-0.02:0.004:0,'YTickLabel',-0.02:0.004:0)
-        set(ha(ii),'XTick',20:20:140)
+        hold off
+    elseif ii == 3
+        hold on
+        plot(xname,indexGrass(:,23),':k','LineWidth',1.5)
+        plot(xname,indexArca(:,23),'--','color',grayDk,'LineWidth',1.5)
+        plot(xname,indexBapi(:,23),'color',grayLt,'LineWidth',1.5)
+        axis([10 150 -0.04 0])
+        set(ha(ii),'YTick',-0.04:0.01:0,'YTickLabel',-0.04:0.01:0)
+        set(ha(ii),'XTick',20:20:140,'XTickLabel',20:20:140)
+        ytickformat('%.2f')
         ylabel('RVSI')
+        hold off
+    elseif ii  == 4
+        hold on
+        plot(xname,indexGrass(:,23),':k','LineWidth',1.5)
+        plot(xname,indexArca(:,23),'--','color',grayDk,'LineWidth',1.5)
+        plot(xname,indexBapi(:,23),'color',grayLt,'LineWidth',1.5)
+        legend({'MAGF','ARCA','BAPI'},'FontSize',12,'Position',[0.75 0.5 0.05 0.05])%,'Orientation','horizontal'
+        plot(xname,indexGrass(:,23),'-','Color',get(gcf,'color'),'LineWidth',1.5)
+        plot(xname,indexArca(:,23),'-','Color',get(gcf,'color'),'LineWidth',1.5)
+        plot(xname,indexBapi(:,23),'-','Color',get(gcf,'color'),'LineWidth',1.5)
+        set(ha(ii),'visible','off')
+        hold off
+    elseif ii == 5
+        set(ha(ii),'XTick',20:20:140,'XTickLabel',20:20:140)
+        ylabel('Plant Available Water')
+        xlabel('Julian Day')
+    else
+        set(ha(ii),'XTick',20:20:140,'XTickLabel',20:20:140)
+        ylabel('AET/PET')
         xlabel('Julian Day')
     end
 end
@@ -222,5 +279,99 @@ end
 % Save Image
 fig = gcf;
 fig.PaperUnits = 'inches';
-fig.PaperPosition = [0 0 3 5];
-print(strcat(figDir,'index_Grass'),'-dpng')
+fig.PaperPosition = [0 0 6 7];
+print(strcat(figDir,'figure_14-6'),'-dpng')
+%% Figure 14.7 Scatterplots
+% ha = tight_subplot(Nh, Nw, gap, marg_h, marg_w)
+%   in:  Nh      number of axes in height (vertical direction)
+%        Nw      number of axes in width (horizontaldirection)
+%        gap     gaps between the axes in normalized units (0...1)
+%                   or [gap_h gap_w] for different gaps in height and width
+%        marg_h  margins in height in normalized units (0...1)
+%                   or [lower upper] for different lower and upper margins
+%        marg_w  margins in width in normalized units (0...1)
+%                   or [left right] for different left and right margins
+figure('units','normalized','outerposition',[0 0 1 1])
+ha = tight_subplot(3,2,[.05 .08],[.05 .05],[.11 .03]);
+
+for ii = 1:6
+    axes(ha(ii));
+    
+    if ii == 1 %WBI vs Plant Available Water
+        hold on
+        scatter(apw,indexGrass(:,32),'s','filled','MarkerEdgeColor','k','MarkerFaceColor','k')
+        scatter(apw,indexArca(:,32),'filled')
+        scatter(apw,indexBapi(:,32),'filled')
+        ylabel('WBI')
+        axis([0 1 0.9 1.1])
+        set(ha(ii),'YTick',0.9:0.05:1.1,'YTickLabel',0.9:0.05:1.1)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        ytickformat('%.2f')
+        hold off
+
+    elseif ii == 2 %WBI vs AET/PET
+        hold on
+        scatter(aetpet,indexGrass(:,32),'filled')
+        scatter(aetpet,indexArca(:,32),'filled')
+        scatter(aetpet,indexBapi(:,32),'filled')
+        axis([0 1 0.9 1.1])
+        set(ha(ii),'YTick',0.9:0.05:1.1,'YTickLabel',0.9:0.05:1.1)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        ytickformat('%.2f')
+        hold off        
+
+    elseif ii == 3 %CI Rededge vs Plant Available Water
+        hold on
+        scatter(apw,indexGrass(:,8),'filled')
+        scatter(apw,indexArca(:,8),'filled')
+        scatter(apw,indexBapi(:,8),'filled')
+        set(ha(ii),'YTick',0:0.5:2.5,'YTickLabel',0:0.5:2.5)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        axis([0 1 0 2.5])
+        ytickformat('%.1f')
+        ylabel('CI Rededge')
+        hold off
+
+    elseif ii  == 4 %CI Rededge vs AET/PET
+        hold on
+        scatter(aetpet,indexGrass(:,8),'filled')
+        scatter(aetpet,indexArca(:,8),'filled')
+        scatter(aetpet,indexBapi(:,8),'filled')
+        set(ha(ii),'YTick',0:0.5:2.5,'YTickLabel',0:0.5:2.5)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        axis([0 1 0 2.5])
+        ytickformat('%.2f')
+        hold off
+        
+    elseif ii == 5 %RVSI vs Plant Available Water
+        hold on 
+        scatter(apw,indexGrass(:,23),'filled')
+        scatter(apw,indexArca(:,23),'filled')
+        scatter(apw,indexBapi(:,23),'filled')
+        set(ha(ii),'YTick',-0.04:0.01:0,'YTickLabel',-0.04:0.01:0)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        axis([0 1 -0.04 0])
+        ytickformat('%.2f')
+        ylabel('RVSI')
+        xlabel('Plant Available Water')
+        hold off
+        
+    else %RVSI vs AET/PET
+        hold on
+        scatter(aetpet,indexGrass(:,23),'filled')
+        scatter(aetpet,indexArca(:,23),'filled')
+        scatter(aetpet,indexBapi(:,23),'filled')
+        set(ha(ii),'YTick',-0.04:0.01:0,'YTickLabel',-0.04:0.01:0)
+        set(ha(ii),'XTick',0:0.2:1,'XTickLabel',0:0.2:1)
+        axis([0 1 -0.04 0])
+        ytickformat('%.2f')
+        xlabel('AET/PET')
+        hold off
+    end
+end
+
+% Save Image
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 6 7];
+print(strcat(figDir,'figure_14-7'),'-dpng')
